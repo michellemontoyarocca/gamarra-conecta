@@ -21,7 +21,7 @@
 <section class="admin-section" aria-labelledby="sol"><h2 id="sol">Solicitudes pendientes ({{ guidance_rows|length }})</h2>
 {% for item in guidance_rows %}
   <article class="card admin-item">
-    <div><span class="tag">{{ item['topic'] }}</span><p>{{ item['details'] }}</p><small class="muted">{{ item['email'] }} · {{ item['created_at'] }}</small></div>
+    <div><span class="tag">{{ item['topic'] }}</span><p>{{ item['details'] }}</p><small class="muted">{{ item['email'] }} · {{ item['created_at'][:16] }} (UTC)</small></div>
     <div class="btns"><form method="post" action="{{ url_for('review_guidance', guidance_id=item['id']) }}"><input type="hidden" name="_csrf" value="{{ csrf_token }}"><button class="button secondary small" type="submit">Marcar revisada</button></form></div>
   </article>
 {% else %}<div class="empty"><h3>No hay solicitudes pendientes</h3><p>Las nuevas consultas de orientación aparecerán aquí.</p></div>{% endfor %}
