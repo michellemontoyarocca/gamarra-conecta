@@ -1,11 +1,10 @@
 @startuml
-title Gamarra Conecta - Arquitectura lógica (UML componentes)
+title Gamarra Conecta - Arquitectura logica implementada (UML componentes)
 top to bottom direction
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName Arial
 skinparam componentStyle uml2
-skinparam linetype ortho
 skinparam ArrowColor #334155
 skinparam component {
   BackgroundColor #EFF6FF
@@ -17,26 +16,27 @@ skinparam database {
   BorderColor #16A34A
   FontColor #0F172A
 }
-actor "Usuario" as U
-package "Presentación" {
-  [Navegador y plantillas HTML] as UI
+actor "Visitante / Comerciante /\nAdministrador" as U
+package "Presentacion" {
+  [Navegador y plantillas Jinja2\n(base, index, directorio, ficha,\nguia, orientacion, admin)] as UI
 }
-package "Aplicación - Flask" {
-  [Rutas web / API] as API
-  [Autenticación y control de acceso] as Auth
-  [Negocios y directorio] as Biz
-  [Orientación y solicitudes] as Req
-  [Administración] as Admin
+package "Aplicacion - Flask (app.py)" {
+  [Rutas web\n/ /negocios /negocios/<id> /guia\n/registro /login /logout\n/mi-negocio /orientacion /admin /salud] as API
+  [Autenticacion, sesion y CSRF\n(login_required, admin_required)] as Auth
+  [Negocios y directorio\n(perfil, filtros, ficha publica)] as Biz
+  [Solicitudes de orientacion] as Req
+  [Moderacion y panel admin\n(publicar, rechazar, revisar)] as Admin
 }
 package "Datos" {
-  database "SQLite del MVP" as DB
+  database "SQLite\ninstance/gamarra.sqlite3\n(users, businesses,\nguidance_requests)" as DB
 }
-package "Tecnología" {
-  [Proxy HTTPS] as Proxy
-  [Servidor WSGI] as WSGI
+package "Tecnologia (VPS)" {
+  [Nginx con HTTPS\n(Let's Encrypt)] as Proxy
+  [Gunicorn\n127.0.0.1:8018] as WSGI
 }
-U --> UI : interacción
-UI --> Proxy : HTTPS
+cloud "Fuentes oficiales\n(enlaces externos)" as EXT
+U --> UI : interaccion
+UI --> Proxy : HTTPS 443
 Proxy --> WSGI : HTTP interno
 WSGI --> API
 API --> Auth
@@ -44,11 +44,8 @@ API --> Biz
 API --> Req
 API --> Admin
 Auth --> DB : consultas parametrizadas
-Biz --> DB : CRUD
-Req --> DB : CRUD
-Admin --> DB : lectura y revisión
-note right of DB
-  Datos de usuarios y copias de respaldo
-  fuera del repositorio en producción.
-end note
+Biz --> DB : lectura y escritura
+Req --> DB : lectura y escritura
+Admin --> DB : actualiza estados
+UI ..> EXT : enlaces de la guia
 @enduml
