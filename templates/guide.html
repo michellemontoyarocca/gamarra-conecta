@@ -1,4 +1,9 @@
 {% extends 'base.html' %}{% block title %}Guía de formalización · Gamarra Conecta{% endblock %}
-{% block content %}<section class="page-heading"><p class="eyebrow">GUÍA</p><h1>Pasos generales para formalizar un negocio</h1><p>Información general con enlaces a las entidades oficiales. El portal no verifica la situación de tu negocio ni sustituye los trámites ante la SUNAT o la municipalidad.</p></section>
-<ol class="steps">{% for title, text, label, url in steps %}<li class="card"><h2>{{ title }}</h2><p>{{ text }}</p><a class="button secondary" href="{{ url }}" rel="noopener noreferrer" target="_blank">{{ label }}</a></li>{% endfor %}</ol>
-<p><a class="button" href="{{ url_for('guidance') }}">Registrar una solicitud de orientación</a></p>{% endblock %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">Guía</p><h1>Pasos generales para formalizar un negocio</h1><p>Información general con enlaces a las entidades oficiales, para que sepas por dónde empezar.</p></section>
+<div class="callout" role="note"><strong>Importante:</strong> el portal no verifica la situación de tu negocio ni sustituye los trámites ante la SUNAT o la municipalidad.</div>
+<ol class="timeline" style="margin-top:22px">{% for title, text, label, url in steps %}
+  <li class="card"><div><h2>{{ title }}</h2><p>{{ text }}</p><a class="button secondary small" href="{{ url }}" rel="noopener noreferrer" target="_blank">{{ label }} <span aria-hidden="true">↗</span><span class="sr-only"> (se abre en una pestaña nueva)</span></a></div></li>{% endfor %}
+</ol>
+<div class="band"><div><h2>¿Tienes dudas sobre tu caso?</h2><p>Registra una solicitud de orientación y haz seguimiento de su estado desde tu cuenta.</p></div><a class="button" href="{{ url_for('guidance') }}">Registrar una solicitud</a></div>
+{% endblock %}
