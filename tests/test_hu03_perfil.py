@@ -31,6 +31,19 @@ class PerfilDeNegocioTests(HistoriaTestCase):
         nombres = sorted(fila[0] for fila in self.query('SELECT name FROM businesses'))
         self.assertEqual(nombres, ['Confecciones Andinas', 'Telas Beto'])
 
+    def test_el_titular_ve_el_estado_de_su_perfil_en_mi_negocio(self):
+        self.create_business()
+        self.assertIn(b'Tu perfil est\xc3\xa1 en revisi\xc3\xb3n', self.client.get('/mi-negocio').data)
+        admin = self.make_admin()
+        self.post('/admin/negocios/1/publicar', {}, admin)
+        self.assertIn(b'Tu perfil est\xc3\xa1 publicado', self.client.get('/mi-negocio').data)
+
+    def test_el_titular_ve_que_su_perfil_fue_rechazado_y_puede_corregirlo(self):
+        self.create_business()
+        admin = self.make_admin()
+        self.post('/admin/negocios/1/rechazar', {}, admin)
+        self.assertIn(b'Tu perfil fue rechazado', self.client.get('/mi-negocio').data)
+
     def test_categoria_invalida_se_rechaza(self):
         resultado = self.create_business(category='Inventado')
         self.assertIn(b'Revisa los campos', resultado.data)
