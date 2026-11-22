@@ -1,5 +1,5 @@
 @startuml
-title Gamarra Conecta - Flujo de trabajo y pipeline CI/CD implementado
+title Gamarra Conecta - Flujo DevSecOps y despliegue automático
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName Arial
@@ -14,22 +14,27 @@ start
 :Plan - historia GC-n con criterios de aceptacion en Jira;
 :Code - rama feature/GC-n creada desde test;
 :Commit con la clave y el nombre exacto de la historia;
-:Push a GitHub dispara el workflow "CI y seguridad";
+:Push a GitHub dispara el workflow "CI, seguridad y despliegue";
 partition "Job calidad (GitHub Actions, ubuntu-latest)" {
   :Checkout del codigo;
   :Preparar Python 3.12;
-  :Instalar requirements.txt + Bandit + pip-audit;
+  :Instalar requirements.txt + Bandit + pip-audit + detect-secrets;
   :Build: python -m compileall;
-  :Test: python -m unittest discover (49 pruebas);
+  :Test: python -m unittest discover (54 pruebas);
   :SAST: bandit -r app.py -ll;
   :Dependencias: pip-audit -r requirements.txt;
+  :Secretos: detect-secrets scan --all-files;
+  :Guardar reportes de los tres escaneos como artefacto;
 }
 if (¿Todos los pasos en verde?) then (si)
   :Merge de la rama feature en test (--no-ff);
   :Pull Request test -> main;
   :Revision y merge en main;
-  partition "Job deploy (condicionado: main + DEPLOY_ENABLED)" {
-    :Actualizar VPS por SSH (git pull y reinicio del servicio);
+  partition "Job deploy (main + calidad aprobada)" {
+    :SSH con clave limitada al script de despliegue;
+    :Respaldar SQLite y actualizar main;
+    :Instalar dependencias y reiniciar el servicio;
+    :Comprobar /salud; restaurar commit anterior si falla;
   }
   :Despliegue verificado en https://gamarra.comextech.es;
   :Operar: logs de systemd y respaldo diario de SQLite;
@@ -39,9 +44,7 @@ else (no)
 endif
 stop
 note right
-  El job deploy aparece como omitido (skipped)
-  mientras no se configuren los secretos del
-  repositorio. El despliegue se hizo por SSH
-  siguiendo los mismos pasos.
+  Los reportes de seguridad quedan disponibles
+  como artefactos de cada ejecucion de CI.
 end note
 @enduml

@@ -42,6 +42,8 @@ El comando solicita una contraseña de al menos 10 caracteres sin mostrarla. No 
 
 Las contraseñas se almacenan como hashes generados por Werkzeug. Todas las operaciones POST exigen token CSRF. Las consultas SQL usan parámetros. Las rutas protegidas comprueban sesión y rol. La cookie de sesión tiene HttpOnly y SameSite=Lax; al definir `GAMARRA_ENV=production`, también exige Secure. En producción debe definirse además `GAMARRA_SECRET_KEY` con un valor aleatorio persistente y servirse solo por HTTPS. Los datos que introduce el usuario se escapan mediante Jinja; no se usa HTML sin filtrar.
 
+El ingreso limita a cinco intentos fallidos por correo durante quince minutos, con el contador compartido en SQLite entre los procesos Gunicorn. La prueba que detectó y verificó la corrección del problema está documentada en `docs/hallazgo_seguridad.md`.
+
 La aplicación usa SQLite para una demostración académica de escala pequeña. Para un despliegue concurrente o de mayor escala conviene migrar a PostgreSQL y evaluar copias de seguridad, monitoreo, recuperación y gestión de datos personales.
 
 ## Verificación local
@@ -49,17 +51,18 @@ La aplicación usa SQLite para una demostración académica de escala pequeña. 
 ```powershell
 python -m unittest discover -s tests -v
 python -m compileall -q app.py tests
-python -m pip install bandit pip-audit
-bandit -r app.py -ll
-pip-audit -r requirements.txt
+python -m pip install bandit pip-audit detect-secrets==1.5.0
+python -m bandit -r app.py -ll
+python -m pip_audit -r requirements.txt
+detect-secrets scan --all-files --exclude-files '^\.git/'
 ```
 
-GitHub Actions ejecuta las mismas fases de compilación, pruebas, análisis estático de seguridad y auditoría de dependencias en cada push y pull request. El job `deploy` queda omitido hasta configurar la variable `DEPLOY_ENABLED=true`, el entorno `production` y los secretos `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`, `DEPLOY_HOST` y `DEPLOY_USER` en el repositorio. Un archivo de workflow por sí solo no demuestra una ejecución remota exitosa: esa evidencia debe obtenerse en la pestaña Actions del repositorio publicado.
+GitHub Actions ejecuta compilación, 54 pruebas, Bandit, pip-audit y detect-secrets en cada push y pull request, y conserva los tres reportes de seguridad como artefacto. Un push a `main` que supera `calidad` inicia `deploy` cuando `DEPLOY_ENABLED=true`. La clave SSH del job está limitada en el VPS a ejecutar `scripts/deploy.sh`: actualiza `main`, instala dependencias en el entorno virtual del servidor, reinicia el servicio y comprueba `/salud`. Antes de desplegar guarda una copia de SQLite; si falla la instalación, el reinicio o la comprobación de salud, restaura el commit anterior. El job necesita el entorno `production` y los secretos `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`, `DEPLOY_HOST` y `DEPLOY_USER`.
 
 ## Ramas y trazabilidad
 
-`main` es la rama de producción y `test` la de integración. Cada historia de Jira (espacio GC) se trabajó en una rama `feature/GC-n-...` desde `test`; el commit lleva como mensaje la clave y el nombre exacto de la historia, se integra en `test` con un merge sin fast-forward y un Pull Request lleva `test` a `main`. Cada push ejecuta el workflow «CI y seguridad».
+`main` es la rama de producción y `test` la de integración. Cada historia de Jira (espacio GC) se trabajó en una rama `feature/GC-n-...` desde `test`; el commit lleva como mensaje la clave y el nombre exacto de la historia, se integra en `test` con un merge sin fast-forward y el Pull Request #1 integró `test` en `main`. Cada push ejecuta el workflow «CI, seguridad y despliegue».
 
 ## Despliegue
 
-La aplicación está publicada en https://gamarra.comextech.es sobre un VPS Ubuntu: carpeta `/srv/gamarra-conecta`, usuario del sistema `gamarra` sin privilegios, entorno virtual con Flask y Gunicorn, servicio `systemd` `gamarra-conecta` (Gunicorn en `127.0.0.1:8018`), Nginx con certificado de Let's Encrypt y redirección de HTTP a HTTPS. `GAMARRA_ENV=production` y `GAMARRA_SECRET_KEY` están en `/etc/gamarra-conecta.env` (permisos 600, fuera de Git). Una regla de `sudoers` permite al usuario `gamarra` reiniciar únicamente ese servicio. Un respaldo diario a las 03:30 copia `instance/gamarra.sqlite3` a `/srv/gamarra-backups` y conserva 14 días. Para actualizar: `git pull` en la carpeta, `pip install -r requirements.txt` y `sudo systemctl restart gamarra-conecta`; después, comprobar `/salud`.
+La aplicación está publicada en https://gamarra.comextech.es sobre un VPS Ubuntu: carpeta `/srv/gamarra-conecta`, usuario del sistema `gamarra` sin privilegios, entorno virtual en `/srv/gamarra-conecta-home/venv`, servicio `systemd` `gamarra-conecta` (Gunicorn en `127.0.0.1:8018`), Nginx con certificado de Let's Encrypt y redirección de HTTP a HTTPS. `GAMARRA_ENV=production` y `GAMARRA_SECRET_KEY` están en `/etc/gamarra-conecta.env` (permisos 600, fuera de Git). Una regla de `sudoers` permite al usuario `gamarra` reiniciar únicamente ese servicio. Un respaldo diario a las 03:30 copia `instance/gamarra.sqlite3` a `/srv/gamarra-backups` y conserva 14 días. El procedimiento reproducible está en `scripts/deploy.sh` y el resultado de cada ejecución se comprueba en GitHub Actions y en `/salud`.

@@ -1,10 +1,18 @@
-name: CI y seguridad
+name: CI, seguridad y despliegue
 on:
   push:
   pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 jobs:
   calidad:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Obtener código
         uses: actions/checkout@v4
@@ -13,24 +21,39 @@ jobs:
         with:
           python-version: '3.12'
       - name: Instalar aplicación y analizadores
-        run: python -m pip install -r requirements.txt bandit pip-audit
+        run: python -m pip install -r requirements.txt bandit pip-audit detect-secrets==1.5.0
       - name: Compilar módulos
         run: python -m compileall -q app.py tests
       - name: Ejecutar pruebas automatizadas
         run: python -m unittest discover -s tests -v
       - name: Analizar código Python con Bandit
-        run: bandit -r app.py -ll
+        run: bandit -r app.py -ll -f json -o bandit-report.json
       - name: Auditar dependencias
-        run: pip-audit -r requirements.txt
+        run: pip-audit -r requirements.txt --format json --output pip-audit-report.json
+      - name: Detectar secretos
+        run: |
+          detect-secrets scan --all-files --exclude-files '^\.git/' > secret-scan.json
+          python -c "import json; r=json.load(open('secret-scan.json', encoding='utf-8'))['results']; n=sum(map(len,r.values())); print(f'Hallazgos de secretos: {n}'); assert n == 0"
+      - name: Conservar resultados de seguridad
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reportes-seguridad-${{ github.run_id }}
+          path: |
+            bandit-report.json
+            pip-audit-report.json
+            secret-scan.json
+          if-no-files-found: warn
   deploy:
-    # Se activa al configurar la variable del repositorio DEPLOY_ENABLED=true.
-    # Requiere un VPS ya preparado; hasta entonces el job queda omitido.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
     needs: calidad
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment: production
     steps:
-      - name: Configurar SSH con huella del servidor conocida
+      - name: Obtener código
+        uses: actions/checkout@v4
+      - name: Configurar SSH
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
@@ -40,10 +63,9 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
-      - name: Actualizar aplicación en el VPS
+      - name: Desplegar y comprobar salud
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
         run: |
-          ssh -o StrictHostKeyChecking=yes "$DEPLOY_USER@$DEPLOY_HOST" \
-            'cd /srv/gamarra-conecta && git pull --ff-only origin main && .venv/bin/pip install -r requirements.txt && sudo systemctl restart gamarra-conecta'
+          ssh -o StrictHostKeyChecking=yes "$DEPLOY_USER@$DEPLOY_HOST"
