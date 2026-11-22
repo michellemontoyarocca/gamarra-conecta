@@ -50,7 +50,7 @@ bandit -r app.py -ll
 pip-audit -r requirements.txt
 ```
 
-GitHub Actions ejecuta las mismas fases de compilación, pruebas, análisis estático de seguridad y auditoría de dependencias en cada push y pull request. Un archivo de workflow por sí solo no demuestra una ejecución remota exitosa: esa evidencia debe obtenerse en la pestaña Actions del repositorio publicado.
+GitHub Actions ejecuta las mismas fases de compilación, pruebas, análisis estático de seguridad y auditoría de dependencias en cada push y pull request. El job `deploy` queda omitido hasta configurar la variable `DEPLOY_ENABLED=true`, el entorno `production` y los secretos `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`, `DEPLOY_HOST` y `DEPLOY_USER` en el repositorio. Un archivo de workflow por sí solo no demuestra una ejecución remota exitosa: esa evidencia debe obtenerse en la pestaña Actions del repositorio publicado.
 
 ## Ramas y trazabilidad
 
@@ -58,4 +58,4 @@ Propuesta de flujo: `test` para integración, ramas `feature/hu-XX` para cada hi
 
 ## Despliegue
 
-En un VPS: instalar Python y dependencias, establecer `GAMARRA_ENV=production` y `GAMARRA_SECRET_KEY`, ejecutar Flask mediante Gunicorn detrás de Nginx con HTTPS y restringir acceso al archivo SQLite. Antes de publicar, agregar respaldo de `instance/`, configuración de dominio, servicio del sistema y pruebas de humo. Este repositorio local no acredita un despliegue público.
+En un VPS: clonar el repositorio en `/srv/gamarra-conecta`, instalar Python y dependencias, establecer `GAMARRA_ENV=production` y `GAMARRA_SECRET_KEY`, ejecutar Flask mediante Gunicorn detrás de Nginx con HTTPS y restringir acceso al archivo SQLite. El usuario remoto del pipeline debe poder reiniciar únicamente el servicio `gamarra-conecta` sin contraseña, con una regla de `sudoers` específica; no otorgar privilegios generales. Antes de publicar, agregar respaldo de `instance/`, configuración de dominio, servicio del sistema y pruebas de humo. Este repositorio local no acredita un despliegue público.

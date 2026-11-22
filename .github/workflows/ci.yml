@@ -22,3 +22,28 @@ jobs:
         run: bandit -r app.py -ll
       - name: Auditar dependencias
         run: pip-audit -r requirements.txt
+  deploy:
+    # Se activa al configurar la variable del repositorio DEPLOY_ENABLED=true.
+    # Requiere un VPS ya preparado; hasta entonces el job queda omitido.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
+    needs: calidad
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Configurar SSH con huella del servidor conocida
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+      - name: Actualizar aplicación en el VPS
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          ssh -o StrictHostKeyChecking=yes "$DEPLOY_USER@$DEPLOY_HOST" \
+            'cd /srv/gamarra-conecta && git pull --ff-only origin main && .venv/bin/pip install -r requirements.txt && sudo systemctl restart gamarra-conecta'
