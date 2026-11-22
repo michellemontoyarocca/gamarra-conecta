@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}Gamarra Conecta{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="site-header"><div class="wrap nav">
+    <a class="brand" href="{{ url_for('index') }}">Gamarra<span>Conecta</span></a>
+    <nav aria-label="Navegación principal">
+      <a href="{{ url_for('businesses') }}">Directorio</a>
+      {% if g.user %}
+        <a href="{{ url_for('my_business') }}">Mi negocio</a>
+        <a href="{{ url_for('guidance') }}">Orientación</a>
+        {% if g.user['role'] == 'admin' %}<a href="{{ url_for('admin') }}">Administración</a>{% endif %}
+        <form class="inline" method="post" action="{{ url_for('logout') }}"><input type="hidden" name="_csrf" value="{{ csrf_token }}"><button class="nav-button" type="submit">Salir</button></form>
+      {% else %}
+        <a href="{{ url_for('login') }}">Ingresar</a>
+        <a class="nav-pill" href="{{ url_for('register') }}">Crear cuenta</a>
+      {% endif %}
+    </nav>
+  </div></header>
+  <main class="wrap">
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+      <div class="notice {{ category }}" role="status">{{ message }}</div>
+    {% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="wrap footer">Prototipo académico · Directorio y orientación para comerciantes de Gamarra · La información no reemplaza asesoría oficial.</footer>
+</body>
+</html>

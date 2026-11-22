@@ -1,0 +1,7 @@
+{% extends 'base.html' %}{% block title %}Crear cuenta · Gamarra Conecta{% endblock %}
+{% block content %}<div class="form-page"><p class="eyebrow">COMERCIANTES</p><h1>Crear cuenta</h1><p>Tu perfil comercial se registra después de ingresar.</p>
+<form method="post" class="card form"><input type="hidden" name="_csrf" value="{{ csrf_token }}">
+<label>Nombre completo<input name="name" required maxlength="100" autocomplete="name" value="{{ request.form.get('name','') }}"></label>
+<label>Correo electrónico<input type="email" name="email" required maxlength="254" autocomplete="email" value="{{ request.form.get('email','') }}"></label>
+<label>Contraseña<input type="password" name="password" required minlength="10" autocomplete="new-password"><small>Mínimo 10 caracteres.</small></label>
+<button class="button" type="submit">Crear cuenta</button></form></div>{% endblock %}

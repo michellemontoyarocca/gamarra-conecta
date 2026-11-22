@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="hero"><div>
+  <p class="eyebrow">EMPORIO COMERCIAL DE GAMARRA</p>
+  <h1>Un punto de encuentro para los negocios de Gamarra</h1>
+  <p class="lead">Publica tu negocio, encuentra proveedores y solicita orientación para dar el siguiente paso en tu formalización.</p>
+  <div class="actions"><a class="button" href="{{ url_for('businesses') }}">Explorar negocios</a><a class="button secondary" href="{{ url_for('register') }}">Registrar mi negocio</a></div>
+</div><div class="hero-stat"><strong>{{ count }}</strong><span>negocios publicados</span><small>Los perfiles pasan por revisión antes de aparecer en el directorio.</small></div></section>
+<section class="features"><article><span>01</span><h2>Visibilidad</h2><p>Presenta tu rubro, galería y descripción en un directorio consultable.</p></article><article><span>02</span><h2>Orientación</h2><p>Registra una consulta sobre trámites y sigue su estado desde tu cuenta.</p></article><article><span>03</span><h2>Confianza</h2><p>Los perfiles se publican tras una revisión administrativa.</p></article></section>
+{% endblock %}

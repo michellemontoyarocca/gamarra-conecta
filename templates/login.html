@@ -1,0 +1,6 @@
+{% extends 'base.html' %}{% block title %}Ingresar · Gamarra Conecta{% endblock %}
+{% block content %}<div class="form-page"><p class="eyebrow">BIENVENIDO</p><h1>Ingresar</h1>
+<form method="post" class="card form"><input type="hidden" name="_csrf" value="{{ csrf_token }}">
+<label>Correo electrónico<input type="email" name="email" required autocomplete="email"></label>
+<label>Contraseña<input type="password" name="password" required autocomplete="current-password"></label>
+<button class="button" type="submit">Ingresar</button></form></div>{% endblock %}
