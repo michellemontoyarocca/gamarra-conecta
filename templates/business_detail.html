@@ -1,4 +1,20 @@
 {% extends 'base.html' %}{% block title %}{{ business['name'] }} · Gamarra Conecta{% endblock %}
-{% block content %}<section class="page-heading"><p class="eyebrow">FICHA DEL NEGOCIO</p><h1>{{ business['name'] }}</h1><p><span class="tag">{{ business['category'] }}</span></p></section>
-<article class="card business"><p>{{ business['description'] }}</p><small>Galería: {{ business['gallery'] }}</small></article>
-<p><a class="button secondary" href="{{ url_for('businesses') }}">Volver al directorio</a></p>{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <nav class="crumbs" aria-label="Ruta de navegación"><a href="{{ url_for('index') }}">Inicio</a> / <a href="{{ url_for('businesses') }}">Directorio</a> / {{ business['name'] }}</nav>
+  <p class="eyebrow">Ficha del negocio</p>
+  <h1>{{ business['name'] }}</h1>
+  <span class="tag">{{ business['category'] }}</span>
+</section>
+<article class="card detail">
+  <h2>Sobre el negocio</h2>
+  <p>{{ business['description'] }}</p>
+  <dl class="facts">
+    <dt>Rubro</dt><dd>{{ business['category'] }}</dd>
+    <dt>Galería o ubicación</dt><dd>{{ business['gallery'] }}</dd>
+    <dt>Estado del perfil</dt><dd><span class="badge publicado">Publicado y revisado</span></dd>
+  </dl>
+  <p class="muted small" style="margin-top:18px">Los datos son los que declaró el titular. El portal no verifica licencias ni la situación tributaria del negocio.</p>
+</article>
+<div class="actions"><a class="button secondary" href="{{ url_for('businesses') }}">← Volver al directorio</a></div>
+{% endblock %}
