@@ -20,6 +20,21 @@ class DirectorioTests(HistoriaTestCase):
         visitante = self.new_client()
         self.assertIn(b'Confecciones Andinas', visitante.get('/negocios').data)
 
+    def test_la_portada_muestra_los_negocios_recientes_solo_si_estan_publicados(self):
+        portada = self.new_client().get('/')
+        self.assertNotIn(b'Confecciones Andinas', portada.data)
+        self.assertIn('Aún no hay negocios publicados'.encode(), portada.data)
+        admin = self.make_admin()
+        self.post('/admin/negocios/1/publicar', {}, admin)
+        portada = self.new_client().get('/')
+        self.assertIn(b'Confecciones Andinas', portada.data)
+        self.assertIn(b'1</strong><span>negocio publicado', portada.data)
+
+    def test_el_directorio_indica_cuantos_resultados_hay(self):
+        admin = self.make_admin()
+        self.post('/admin/negocios/1/publicar', {}, admin)
+        self.assertIn('1 resultado'.encode(), self.new_client().get('/negocios').data)
+
     def test_directorio_es_publico_y_no_expone_el_correo_del_titular(self):
         admin = self.make_admin()
         self.post('/admin/negocios/1/publicar', {}, admin)

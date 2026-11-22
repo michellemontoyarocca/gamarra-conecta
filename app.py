@@ -123,7 +123,10 @@ def create_app(test_config: dict | None = None) -> Flask:
     @app.get('/')
     def index():
         count = db().execute("SELECT COUNT(*) FROM businesses WHERE status = 'publicado'").fetchone()[0]
-        return render_template('index.html', count=count)
+        recent = db().execute(
+            "SELECT id, name, category, description, gallery FROM businesses WHERE status = 'publicado' ORDER BY id DESC LIMIT 6"
+        ).fetchall()
+        return render_template('index.html', count=count, recent=recent)
 
     @app.get('/salud')
     def health():

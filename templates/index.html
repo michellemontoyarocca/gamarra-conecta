@@ -1,10 +1,63 @@
 {% extends 'base.html' %}
 {% block content %}
-<section class="hero"><div>
-  <p class="eyebrow">EMPORIO COMERCIAL DE GAMARRA</p>
-  <h1>Un punto de encuentro para los negocios de Gamarra</h1>
-  <p class="lead">Publica tu negocio, encuentra proveedores y solicita orientación para dar el siguiente paso en tu formalización.</p>
-  <div class="actions"><a class="button" href="{{ url_for('businesses') }}">Explorar negocios</a><a class="button secondary" href="{{ url_for('register') }}">Registrar mi negocio</a></div>
-</div><div class="hero-stat"><strong>{{ count }}</strong><span>negocios publicados</span><small>Los perfiles pasan por revisión antes de aparecer en el directorio.</small></div></section>
-<section class="features"><article><span>01</span><h2>Visibilidad</h2><p>Presenta tu rubro, galería y descripción en un directorio consultable.</p></article><article><span>02</span><h2>Orientación</h2><p>Registra una consulta sobre trámites y sigue su estado desde tu cuenta.</p></article><article><span>03</span><h2>Confianza</h2><p>Los perfiles se publican tras una revisión administrativa.</p></article></section>
+<section class="hero">
+  <div>
+    <p class="eyebrow">Emporio comercial de Gamarra</p>
+    <h1>Encuentra y muestra los negocios de Gamarra</h1>
+    <p class="lead">Busca confecciones, telas y servicios por rubro o nombre. Si tienes un negocio, publica su ficha y pide orientación para dar el siguiente paso en tu formalización.</p>
+    <form class="search-box" method="get" action="{{ url_for('businesses') }}" role="search">
+      <label class="sr-only" for="q">Buscar negocios</label>
+      <input id="q" name="q" type="search" placeholder="Busca por nombre o descripción, por ejemplo «polos»" maxlength="100" autocomplete="off">
+      <button class="button" type="submit">Buscar</button>
+    </form>
+    <div class="chips" aria-label="Rubros">
+      {% for item in categories %}<a class="chip" href="{{ url_for('businesses', rubro=item) }}">{{ item }}</a>{% endfor %}
+    </div>
+  </div>
+  <div class="hero-art" aria-hidden="true">
+    <svg viewBox="0 0 360 260" role="img" aria-label="">
+      <rect x="20" y="150" width="320" height="90" rx="16" fill="#9f1d35"/>
+      <rect x="40" y="110" width="280" height="80" rx="16" fill="#0f5f5b"/>
+      <rect x="60" y="70" width="240" height="80" rx="16" fill="#e0a43a"/>
+      <rect x="80" y="30" width="200" height="80" rx="16" fill="#1c1917"/>
+      <g stroke="#fff" stroke-opacity=".55" stroke-width="3" stroke-dasharray="6 8" stroke-linecap="round"><path d="M40 195h280M60 155h240M80 115h200M100 75h160"/></g>
+    </svg>
+    <div class="stats">
+      <div class="stat"><strong>{{ count }}</strong><span>{{ 'negocio publicado' if count == 1 else 'negocios publicados' }}</span></div>
+      <div class="stat"><strong>{{ categories|length }}</strong><span>rubros</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="recientes">
+  <div class="section-head">
+    <div><h2 id="recientes">Negocios recientes</h2><p>Perfiles ya revisados y publicados.</p></div>
+    {% if recent %}<a class="button secondary small" href="{{ url_for('businesses') }}">Ver todo el directorio</a>{% endif %}
+  </div>
+  {% if recent %}
+  <div class="grid">{% for item in recent %}
+    <article class="card business"><span class="tag">{{ item['category'] }}</span>
+      <h3><a href="{{ url_for('business_detail', business_id=item['id']) }}">{{ item['name'] }}</a></h3>
+      <p>{{ item['description']|truncate(110) }}</p>
+      <div class="where">Galería: {{ item['gallery'] }}</div>
+    </article>{% endfor %}
+  </div>
+  {% else %}
+  <div class="empty"><h3>Aún no hay negocios publicados</h3><p>Los perfiles aparecen aquí cuando el administrador los aprueba. Registra el tuyo y sé el primero.</p><a class="button" href="{{ url_for('register') }}">Registrar mi negocio</a></div>
+  {% endif %}
+</section>
+
+<section class="section" aria-labelledby="como">
+  <h2 id="como">Cómo funciona</h2>
+  <ol class="steps">
+    <li class="card"><h3>Crea tu cuenta</h3><p>Regístrate con tu correo y completa la ficha de tu negocio: nombre, rubro, galería y descripción.</p></li>
+    <li class="card"><h3>Espera la revisión</h3><p>Un administrador revisa tu ficha. Verás en «Mi negocio» si está pendiente, publicada o si debes corregirla.</p></li>
+    <li class="card"><h3>Aparece en el directorio</h3><p>Cuando se publica, cualquier visitante puede encontrarte por rubro o nombre y abrir tu ficha.</p></li>
+  </ol>
+</section>
+
+<section class="band" aria-labelledby="orientacion">
+  <div><h2 id="orientacion">¿Quieres formalizar tu negocio?</h2><p>Consulta la guía con los pasos generales y los enlaces oficiales, y registra una solicitud de orientación para hacerle seguimiento.</p></div>
+  <div class="actions" style="margin:0"><a class="button" href="{{ url_for('formalization_guide') }}">Ver la guía</a><a class="button secondary" href="{{ url_for('guidance') }}">Solicitar orientación</a></div>
+</section>
 {% endblock %}
