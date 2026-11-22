@@ -1,6 +1,29 @@
 {% extends 'base.html' %}{% block title %}Administración · Gamarra Conecta{% endblock %}
-{% block content %}<section class="page-heading"><p class="eyebrow">GESTIÓN</p><h1>Panel administrativo</h1><p>Revisa negocios y solicitudes pendientes.</p></section>
-<div class="metrics"><div><strong>{{ counts['usuarios'] }}</strong><span>usuarios</span></div><div><strong>{{ counts['negocios'] }}</strong><span>negocios</span></div><div><strong>{{ counts['publicados'] }}</strong><span>publicados</span></div><div><strong>{{ counts['solicitudes'] }}</strong><span>solicitudes</span></div></div>
-<section class="admin-section"><h2>Negocios pendientes</h2>{% for item in pending %}<article class="card admin-item"><div><span class="tag">{{ item['category'] }}</span><h3>{{ item['name'] }}</h3><p>{{ item['description'] }}</p><small>{{ item['gallery'] }} · {{ item['email'] }}</small></div><form method="post" action="{{ url_for('publish_business', business_id=item['id']) }}"><input type="hidden" name="_csrf" value="{{ csrf_token }}"><button class="button" type="submit">Publicar</button></form></article>{% else %}<p class="empty">No hay negocios pendientes.</p>{% endfor %}</section>
-<section class="admin-section"><h2>Solicitudes pendientes</h2>{% for item in guidance_rows %}<article class="card admin-item"><div><span class="tag">{{ item['topic'] }}</span><p>{{ item['details'] }}</p><small>{{ item['email'] }} · {{ item['created_at'] }}</small></div><form method="post" action="{{ url_for('review_guidance', guidance_id=item['id']) }}"><input type="hidden" name="_csrf" value="{{ csrf_token }}"><button class="button secondary" type="submit">Marcar revisada</button></form></article>{% else %}<p class="empty">No hay solicitudes pendientes.</p>{% endfor %}</section>
+{% block content %}
+<section class="page-heading"><p class="eyebrow">Gestión</p><h1>Panel administrativo</h1><p>Revisa los negocios y las solicitudes pendientes.</p></section>
+<div class="metrics">
+  <div class="card metric"><strong>{{ counts['usuarios'] }}</strong><span>usuarios</span></div>
+  <div class="card metric"><strong>{{ counts['negocios'] }}</strong><span>negocios</span></div>
+  <div class="card metric"><strong>{{ counts['publicados'] }}</strong><span>publicados</span></div>
+  <div class="card metric"><strong>{{ counts['solicitudes'] }}</strong><span>solicitudes</span></div>
+</div>
+<section class="admin-section" aria-labelledby="neg"><h2 id="neg">Negocios pendientes ({{ pending|length }})</h2>
+{% for item in pending %}
+  <article class="card admin-item">
+    <div><span class="tag">{{ item['category'] }}</span><h3>{{ item['name'] }}</h3><p>{{ item['description'] }}</p><small class="muted">{{ item['gallery'] }} · {{ item['email'] }}</small></div>
+    <div class="btns">
+      <form method="post" action="{{ url_for('publish_business', business_id=item['id']) }}"><input type="hidden" name="_csrf" value="{{ csrf_token }}"><button class="button ok small" type="submit">Publicar</button></form>
+      <form method="post" action="{{ url_for('reject_business', business_id=item['id']) }}"><input type="hidden" name="_csrf" value="{{ csrf_token }}"><button class="button danger small" type="submit">Rechazar</button></form>
+    </div>
+  </article>
+{% else %}<div class="empty"><h3>No hay negocios pendientes</h3><p>Cuando un comerciante envíe su perfil, aparecerá aquí para revisarlo.</p></div>{% endfor %}
+</section>
+<section class="admin-section" aria-labelledby="sol"><h2 id="sol">Solicitudes pendientes ({{ guidance_rows|length }})</h2>
+{% for item in guidance_rows %}
+  <article class="card admin-item">
+    <div><span class="tag">{{ item['topic'] }}</span><p>{{ item['details'] }}</p><small class="muted">{{ item['email'] }} · {{ item['created_at'][:16] }} (UTC)</small></div>
+    <div class="btns"><form method="post" action="{{ url_for('review_guidance', guidance_id=item['id']) }}"><input type="hidden" name="_csrf" value="{{ csrf_token }}"><button class="button secondary small" type="submit">Marcar revisada</button></form></div>
+  </article>
+{% else %}<div class="empty"><h3>No hay solicitudes pendientes</h3><p>Las nuevas consultas de orientación aparecerán aquí.</p></div>{% endfor %}
+</section>
 {% endblock %}

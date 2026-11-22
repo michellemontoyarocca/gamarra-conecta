@@ -1,5 +1,5 @@
 @startuml
-title Gamarra Conecta - Modelo de dominio (UML clases)
+title Gamarra Conecta - Modelo de dominio (UML clases, esquema SQLite implementado)
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName Arial
@@ -12,33 +12,34 @@ hide methods
 class Usuario {
   +id: entero
   +nombre: texto
-  +correo: texto único
+  +correo: texto unico
   +clave_hash: texto
-  +rol: comerciante | administrador
+  +rol: comerciante | admin
   +fecha_creacion: fecha-hora
 }
 class Negocio {
   +id: entero
-  +propietario_id: entero
+  +propietario_id: entero unico
   +nombre: texto
-  +rubro: texto
+  +rubro: Confeccion | Telas | Accesorios | Servicios | Otros
   +descripcion: texto
   +galeria: texto
-  +estado: pendiente | publicado
+  +estado: pendiente | publicado | rechazado
   +fecha_creacion: fecha-hora
 }
 class SolicitudOrientacion {
   +id: entero
   +usuario_id: entero
-  +tema: texto
-  +detalle: texto
+  +tema: Registro de negocio | Licencia municipal |\nObligaciones tributarias | Orientacion general
+  +detalle: texto (hasta 1000 caracteres)
   +estado: pendiente | revisada
   +fecha_creacion: fecha-hora
 }
 Usuario "1" -- "0..1" Negocio : posee >
 Usuario "1" -- "0..*" SolicitudOrientacion : crea >
 note bottom of Negocio
-  Solo el estado publicado aparece en
-  el directorio público.
+  Solo el estado publicado aparece en el directorio
+  y en la ficha publica. Al editar, el perfil vuelve
+  a pendiente.
 end note
 @enduml

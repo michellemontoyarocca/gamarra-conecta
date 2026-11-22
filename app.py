@@ -9,7 +9,7 @@ from functools import wraps
 from pathlib import Path
 
 import click
-from flask import Flask, abort, flash, g, redirect, render_template, request, session, url_for
+from flask import Flask, abort, flash, g, jsonify, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS businesses (
     category TEXT NOT NULL,
     description TEXT NOT NULL,
     gallery TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'pendiente' CHECK(status IN ('pendiente', 'publicado')),
+    status TEXT NOT NULL DEFAULT 'pendiente' CHECK(status IN ('pendiente', 'publicado', 'rechazado')),
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS guidance_requests (
@@ -44,6 +44,14 @@ CREATE TABLE IF NOT EXISTS guidance_requests (
 
 CATEGORIES = ('Confección', 'Telas', 'Accesorios', 'Servicios', 'Otros')
 TOPICS = ('Registro de negocio', 'Licencia municipal', 'Obligaciones tributarias', 'Orientación general')
+GUIDE_STEPS = (
+    ('Inscribir el negocio en el RUC', 'La inscripción y la elección del régimen tributario se gestionan ante la SUNAT.',
+     'Portal de la SUNAT', 'https://www.sunat.gob.pe/'),
+    ('Tramitar la licencia de funcionamiento', 'La licencia la otorga la municipalidad del distrito donde opera el negocio.',
+     'Municipalidad de La Victoria', 'https://www.munilavictoria.gob.pe/'),
+    ('Consultar trámites y requisitos del Estado', 'El portal único del Estado reúne la información oficial de trámites y servicios.',
+     'Portal gob.pe', 'https://www.gob.pe/'),
+)
 
 
 def create_app(test_config: dict | None = None) -> Flask:
@@ -115,7 +123,15 @@ def create_app(test_config: dict | None = None) -> Flask:
     @app.get('/')
     def index():
         count = db().execute("SELECT COUNT(*) FROM businesses WHERE status = 'publicado'").fetchone()[0]
-        return render_template('index.html', count=count)
+        recent = db().execute(
+            "SELECT id, name, category, description, gallery FROM businesses WHERE status = 'publicado' ORDER BY id DESC LIMIT 6"
+        ).fetchall()
+        return render_template('index.html', count=count, recent=recent)
+
+    @app.get('/salud')
+    def health():
+        db().execute('SELECT 1').fetchone()
+        return jsonify(estado='ok')
 
     @app.route('/registro', methods=['GET', 'POST'])
     def register():
@@ -176,6 +192,20 @@ def create_app(test_config: dict | None = None) -> Flask:
         sql += ' ORDER BY name COLLATE NOCASE'
         rows = db().execute(sql, args).fetchall()
         return render_template('businesses.html', businesses=rows, category=category, query=query)
+
+    @app.get('/negocios/<int:business_id>')
+    def business_detail(business_id: int):
+        business = db().execute(
+            "SELECT id, name, category, description, gallery FROM businesses WHERE id = ? AND status = 'publicado'",
+            (business_id,),
+        ).fetchone()
+        if business is None:
+            abort(404)
+        return render_template('business_detail.html', business=business)
+
+    @app.get('/guia')
+    def formalization_guide():
+        return render_template('guide.html', steps=GUIDE_STEPS)
 
     @app.route('/mi-negocio', methods=['GET', 'POST'])
     @login_required
@@ -250,6 +280,16 @@ def create_app(test_config: dict | None = None) -> Flask:
         if result.rowcount == 0:
             abort(404)
         flash('Negocio publicado.', 'success')
+        return redirect(url_for('admin'))
+
+    @app.post('/admin/negocios/<int:business_id>/rechazar')
+    @admin_required
+    def reject_business(business_id: int):
+        with db():
+            result = db().execute("UPDATE businesses SET status='rechazado' WHERE id=? AND status='pendiente'", (business_id,))
+        if result.rowcount == 0:
+            abort(404)
+        flash('Negocio rechazado. El titular puede corregir su perfil y volver a enviarlo.', 'success')
         return redirect(url_for('admin'))
 
     @app.post('/admin/solicitudes/<int:guidance_id>/revisar')

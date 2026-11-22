@@ -48,6 +48,11 @@ class GamarraAppTests(unittest.TestCase):
         connection.close()
         self.assertNotIn('ClaveSegura123!', stored_hash)
 
+    def test_health_endpoint_reports_ok(self):
+        response = self.client.get('/salud')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), {'estado': 'ok'})
+
     def test_csrf_rejects_missing_token(self):
         result = self.client.post('/registro', data={'name': 'Ana', 'email': 'ana@example.test', 'password': 'ClaveSegura123!'})
         self.assertEqual(result.status_code, 400)

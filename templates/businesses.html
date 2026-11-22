@@ -1,4 +1,26 @@
 {% extends 'base.html' %}{% block title %}Directorio · Gamarra Conecta{% endblock %}
-{% block content %}<section class="page-heading"><p class="eyebrow">DIRECTORIO</p><h1>Negocios de Gamarra</h1><p>Explora perfiles publicados por rubro o palabra clave.</p></section>
-<form method="get" class="filters card"><label>Buscar<input name="q" value="{{ query }}" placeholder="Nombre o descripción"></label><label>Rubro<select name="rubro"><option value="">Todos los rubros</option>{% for item in categories %}<option value="{{ item }}" {% if category == item %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></label><button class="button" type="submit">Buscar</button></form>
-<div class="grid">{% for item in businesses %}<article class="card business"><span class="tag">{{ item['category'] }}</span><h2>{{ item['name'] }}</h2><p>{{ item['description'] }}</p><small>Galería: {{ item['gallery'] }}</small></article>{% else %}<div class="empty">Aún no hay negocios que coincidan con la búsqueda.</div>{% endfor %}</div>{% endblock %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">Directorio</p><h1>Negocios de Gamarra</h1><p>Explora los perfiles publicados. Filtra por rubro o escribe una palabra clave.</p></section>
+<form method="get" class="card filters" role="search">
+  <div class="field"><label for="q">Buscar</label><input id="q" name="q" type="search" value="{{ query }}" placeholder="Nombre o descripción" maxlength="100"></div>
+  <button class="button" type="submit">Buscar</button>
+  {% if category %}<input type="hidden" name="rubro" value="{{ category }}">{% endif %}
+</form>
+<div class="chips" aria-label="Filtrar por rubro">
+  <a class="chip" href="{{ url_for('businesses', q=query) if query else url_for('businesses') }}" {% if not category %}aria-current="true"{% endif %}>Todos</a>
+  {% for item in categories %}<a class="chip" href="{{ url_for('businesses', rubro=item, q=query) if query else url_for('businesses', rubro=item) }}" {% if category == item %}aria-current="true"{% endif %}>{{ item }}</a>{% endfor %}
+</div>
+<div class="result-bar"><span>{{ businesses|length }} {{ 'resultado' if businesses|length == 1 else 'resultados' }}{% if category %} en «{{ category }}»{% endif %}{% if query %} para «{{ query }}»{% endif %}</span>{% if category or query %}<a href="{{ url_for('businesses') }}">Limpiar filtros</a>{% endif %}</div>
+{% if businesses %}
+<div class="grid">{% for item in businesses %}
+  <article class="card business"><span class="tag">{{ item['category'] }}</span>
+    <h2><a href="{{ url_for('business_detail', business_id=item['id']) }}">{{ item['name'] }}</a></h2>
+    <p>{{ item['description']|truncate(140) }}</p>
+    <div class="where">Galería: {{ item['gallery'] }}</div>
+    <a class="more" href="{{ url_for('business_detail', business_id=item['id']) }}">Ver ficha →</a>
+  </article>{% endfor %}
+</div>
+{% else %}
+<div class="empty"><h3>Aún no hay negocios que coincidan con la búsqueda</h3><p>Prueba con otra palabra o quita los filtros. Si tienes un negocio en Gamarra, puedes registrarlo para que aparezca aquí.</p><div class="actions" style="justify-content:center"><a class="button secondary" href="{{ url_for('businesses') }}">Quitar filtros</a><a class="button" href="{{ url_for('register') }}">Registrar mi negocio</a></div></div>
+{% endif %}
+{% endblock %}

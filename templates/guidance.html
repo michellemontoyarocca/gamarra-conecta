@@ -1,4 +1,25 @@
 {% extends 'base.html' %}{% block title %}Orientación · Gamarra Conecta{% endblock %}
-{% block content %}<section class="page-heading"><p class="eyebrow">ORIENTACIÓN</p><h1>Solicitudes de formalización</h1><p>Registra tu consulta. El estado indica revisión administrativa; no constituye respuesta legal ni tributaria.</p></section>
-<div class="split"><form method="post" class="card form"><input type="hidden" name="_csrf" value="{{ csrf_token }}"><h2>Nueva solicitud</h2><label>Tema<select name="topic" required><option value="">Seleccionar</option>{% for item in topics %}<option value="{{ item }}">{{ item }}</option>{% endfor %}</select></label><label>Describe tu consulta<textarea name="details" rows="6" maxlength="1000" required></textarea></label><button class="button" type="submit">Enviar solicitud</button></form>
-<section><h2>Mis solicitudes</h2>{% for item in requests %}<article class="card request"><span class="tag">{{ item['status'] }}</span><h3>{{ item['topic'] }}</h3><p>{{ item['details'] }}</p><small>{{ item['created_at'] }}</small></article>{% else %}<p class="empty">Todavía no has registrado solicitudes.</p>{% endfor %}</section></div>{% endblock %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">Orientación</p><h1>Solicitudes de orientación</h1><p>Cuéntanos tu consulta sobre formalización. Un administrador la revisa y el estado se actualiza aquí. No constituye respuesta legal ni tributaria. ¿Primera vez? Lee antes la <a href="{{ url_for('formalization_guide') }}">guía de formalización</a>.</p></section>
+<div class="split">
+  <form method="post" class="card form" novalidate>
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+    <h2>Nueva solicitud</h2>
+    <div class="field-group"><label for="topic">Tema</label><select id="topic" name="topic" required><option value="">Seleccionar</option>{% for item in topics %}<option value="{{ item }}">{{ item }}</option>{% endfor %}</select></div>
+    <div class="field-group"><label for="details">Describe tu consulta</label><textarea id="details" name="details" rows="6" maxlength="1000" required data-counter="det-count" placeholder="Explica tu situación con tus palabras"></textarea><span id="det-count" class="counter" aria-live="polite"></span></div>
+    <button class="button" type="submit">Enviar solicitud</button>
+  </form>
+  <section aria-labelledby="mis">
+    <h2 id="mis">Mis solicitudes</h2>
+    {% for item in requests %}
+    <article class="card request">
+      <header><h3>{{ item['topic'] }}</h3><span class="badge {{ item['status'] }}">{{ item['status'] }}</span></header>
+      <p>{{ item['details'] }}</p>
+      <small class="muted">Enviada el {{ item['created_at'][:16] }} (UTC)</small>
+    </article>
+    {% else %}
+    <div class="empty"><h3>Todavía no has registrado solicitudes</h3><p>Cuando envíes una, aparecerá aquí con su estado: pendiente o revisada.</p></div>
+    {% endfor %}
+  </section>
+</div>
+{% endblock %}

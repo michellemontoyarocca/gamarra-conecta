@@ -1,5 +1,5 @@
 @startuml
-title Gamarra Conecta - Solicitud de orientación (UML secuencia)
+title Gamarra Conecta - Solicitud de orientacion (UML secuencia, HU08)
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName Arial
@@ -10,28 +10,31 @@ skinparam SequenceLifeLineBorderColor #94A3B8
 skinparam SequenceGroupBorderColor #94A3B8
 actor Comerciante
 participant "Navegador" as N
-participant "Rutas Flask" as F
-participant "Autenticación" as A
-participant "Servicio de solicitudes" as S
+participant "Ruta /orientacion\n(Flask)" as F
+participant "Control de sesion\ny CSRF" as A
 database "SQLite" as DB
-Comerciante -> N : completa formulario
+Comerciante -> N : completa tema y detalle
 N -> F : POST /orientacion + token CSRF
-F -> A : verificar sesión y CSRF
-alt sesión inválida o token incorrecto
+F -> A : verificar token CSRF
+alt token ausente o invalido
   A --> F : rechazo
-  F --> N : 401/403 o redirección a login
-else sesión válida
-  A --> F : usuario autenticado
-  F -> S : validar datos de solicitud
-  alt datos incompletos
-    S --> F : errores de validación
-    F --> N : mostrar errores sin guardar
-  else datos válidos
-    S -> DB : INSERT solicitud (propietario, estado pendiente)
-    DB --> S : identificador
-    S --> F : confirmación
-    F --> N : mostrar solicitud creada
-    N --> Comerciante : número y estado pendiente
+  F --> N : 400 Bad Request
+else token valido
+  F -> A : verificar sesion (login_required)
+  alt sin sesion
+    A --> F : usuario anonimo
+    F --> N : 302 redireccion a /login
+  else sesion valida
+    A --> F : usuario autenticado
+    F -> F : validar tema (lista cerrada)\ny detalle (1 a 1000 caracteres)
+    alt datos invalidos
+      F --> N : mensaje de error, sin guardar
+    else datos validos
+      F -> DB : INSERT guidance_requests\n(user_id, topic, details, estado pendiente)
+      DB --> F : fila creada
+      F --> N : redireccion a /orientacion
+      N --> Comerciante : "Solicitud registrada" con estado pendiente
+    end
   end
 end
 @enduml
