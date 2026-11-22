@@ -1,4 +1,4 @@
-Ejecutado el 21/11/2026 sobre el commit d09263f de la rama test.
+Ejecutado el 21/11/2026 sobre el commit 8177afe de la rama test.
 Comando: python -m unittest discover -s tests -v
 
 test_business_requires_review_before_search (test_app.GamarraAppTests.test_business_requires_review_before_search) ... ok
@@ -15,9 +15,13 @@ test_credenciales_invalidas_no_dan_acceso (test_hu02_sesion.SesionTests.test_cre
 test_credenciales_validas_llevan_al_panel (test_hu02_sesion.SesionTests.test_credenciales_validas_llevan_al_panel) ... ok
 test_categoria_invalida_se_rechaza (test_hu03_perfil.PerfilDeNegocioTests.test_categoria_invalida_se_rechaza) ... ok
 test_editar_un_perfil_publicado_lo_devuelve_a_pendiente (test_hu03_perfil.PerfilDeNegocioTests.test_editar_un_perfil_publicado_lo_devuelve_a_pendiente) ... ok
+test_el_titular_ve_el_estado_de_su_perfil_en_mi_negocio (test_hu03_perfil.PerfilDeNegocioTests.test_el_titular_ve_el_estado_de_su_perfil_en_mi_negocio) ... ok
+test_el_titular_ve_que_su_perfil_fue_rechazado_y_puede_corregirlo (test_hu03_perfil.PerfilDeNegocioTests.test_el_titular_ve_que_su_perfil_fue_rechazado_y_puede_corregirlo) ... ok
 test_no_se_puede_editar_el_perfil_de_otra_cuenta (test_hu03_perfil.PerfilDeNegocioTests.test_no_se_puede_editar_el_perfil_de_otra_cuenta) ... ok
 test_perfil_valido_queda_pendiente_de_revision (test_hu03_perfil.PerfilDeNegocioTests.test_perfil_valido_queda_pendiente_de_revision) ... ok
 test_directorio_es_publico_y_no_expone_el_correo_del_titular (test_hu04_directorio.DirectorioTests.test_directorio_es_publico_y_no_expone_el_correo_del_titular) ... ok
+test_el_directorio_indica_cuantos_resultados_hay (test_hu04_directorio.DirectorioTests.test_el_directorio_indica_cuantos_resultados_hay) ... ok
+test_la_portada_muestra_los_negocios_recientes_solo_si_estan_publicados (test_hu04_directorio.DirectorioTests.test_la_portada_muestra_los_negocios_recientes_solo_si_estan_publicados) ... ok
 test_perfil_aprobado_aparece_en_el_directorio (test_hu04_directorio.DirectorioTests.test_perfil_aprobado_aparece_en_el_directorio) ... ok
 test_perfil_pendiente_no_aparece_en_el_directorio (test_hu04_directorio.DirectorioTests.test_perfil_pendiente_no_aparece_en_el_directorio) ... ok
 test_filtrar_por_nombre_muestra_coincidencias_y_conserva_el_criterio (test_hu05_filtros.FiltroDelDirectorioTests.test_filtrar_por_nombre_muestra_coincidencias_y_conserva_el_criterio) ... ok
@@ -52,6 +56,6 @@ test_post_con_token_invalido_se_rechaza (test_hu11_proteccion.ProteccionDeFormul
 test_post_sin_token_csrf_se_rechaza_y_no_cambia_los_datos (test_hu11_proteccion.ProteccionDeFormulariosTests.test_post_sin_token_csrf_se_rechaza_y_no_cambia_los_datos) ... ok
 
 ----------------------------------------------------------------------
-Ran 49 tests in 48.565s
+Ran 53 tests in 53.807s
 
 OK

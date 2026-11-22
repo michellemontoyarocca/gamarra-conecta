@@ -1,13 +1,13 @@
-Ejecutado el 21/11/2026 sobre el commit d09263f de la rama test.
+Ejecutado el 21/11/2026 sobre el commit 8177afe de la rama test.
 Comando: bandit -r app.py -ll
 
-Run started:2026-11-22 01:56:44.132565+00:00
+Run started:2026-11-22 02:24:39.260849+00:00
 
 Test results:
 	No issues identified.
 
 Code scanned:
-	Total lines of code: 292
+	Total lines of code: 295
 	Total lines skipped (#nosec): 0
 	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
 
