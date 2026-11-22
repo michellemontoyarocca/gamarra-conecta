@@ -1,5 +1,5 @@
 @startuml
-title Gamarra Conecta - Flujo CI/CD con controles DevSecOps
+title Gamarra Conecta - Flujo de trabajo y pipeline CI/CD implementado
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName Arial
@@ -11,27 +11,37 @@ skinparam activity {
   DiamondBorderColor #D97706
 }
 start
-:Planificar historia y criterios de aceptación en Jira;
-:Crear rama test o feature y realizar commit;
-:Abrir Pull Request hacia main;
-:Build: instalar dependencias reproducibles;
-:Test: ejecutar pruebas unitarias y de integración;
-if (¿Pruebas correctas?) then (sí)
-  :SAST (Bandit);
-  :Auditar dependencias (pip-audit);
-  :Escanear secretos;
-  if (¿Controles aprobados?) then (sí)
-    :Revisión del Pull Request;
-    :Integrar en main;
-    :Release / paquete versionado;
-    :Desplegar en entorno de nube;
-    :Verificar smoke test y URL pública;
-    :Operar: logs, respaldo y monitoreo básico;
-  else (no)
-    :Corregir hallazgo y repetir pipeline;
-  endif
+:Plan - historia GC-n con criterios de aceptacion en Jira;
+:Code - rama feature/GC-n creada desde test;
+:Commit con la clave y el nombre exacto de la historia;
+:Push a GitHub dispara el workflow "CI y seguridad";
+partition "Job calidad (GitHub Actions, ubuntu-latest)" {
+  :Checkout del codigo;
+  :Preparar Python 3.12;
+  :Instalar requirements.txt + Bandit + pip-audit;
+  :Build: python -m compileall;
+  :Test: python -m unittest discover (49 pruebas);
+  :SAST: bandit -r app.py -ll;
+  :Dependencias: pip-audit -r requirements.txt;
+}
+if (¿Todos los pasos en verde?) then (si)
+  :Merge de la rama feature en test (--no-ff);
+  :Pull Request test -> main;
+  :Revision y merge en main;
+  partition "Job deploy (condicionado: main + DEPLOY_ENABLED)" {
+    :Actualizar VPS por SSH (git pull y reinicio del servicio);
+  }
+  :Despliegue verificado en https://gamarra.comextech.es;
+  :Operar: logs de systemd y respaldo diario de SQLite;
+  :Monitor: prueba de humo en /salud;
 else (no)
-  :Corregir código y repetir pipeline;
+  :Corregir el hallazgo o la prueba\ny repetir el pipeline;
 endif
 stop
+note right
+  El job deploy aparece como omitido (skipped)
+  mientras no se configuren los secretos del
+  repositorio. El despliegue se hizo por SSH
+  siguiendo los mismos pasos.
+end note
 @enduml

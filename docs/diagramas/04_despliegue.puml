@@ -1,5 +1,5 @@
 @startuml
-title Gamarra Conecta - Diagrama de despliegue (objetivo)
+title Gamarra Conecta - Diagrama de despliegue (VPS en produccion)
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName Arial
@@ -13,30 +13,29 @@ skinparam artifact {
   BackgroundColor #F8FAFC
   BorderColor #64748B
 }
-node "Dispositivo de usuario" as client {
+node "Dispositivo del usuario" as client {
   artifact "Navegador web" as browser
 }
-cloud "Internet" as internet
-node "VPS Linux / nube" as vps {
-  node "Nginx - HTTPS" as nginx
-  node "Gunicorn - WSGI" as gunicorn {
-    artifact "Aplicación Flask" as flask
+cloud "DNS\ngamarra.comextech.es\nregistro A -> 76.13.8.33" as dns
+node "VPS Ubuntu (76.13.8.33)\nIaaS - recursos dedicados al VPS" as vps {
+  node "Nginx\npuertos 80 y 443\ncertificado Let's Encrypt (Certbot)" as nginx
+  node "systemd: gamarra-conecta.service\nusuario sin privilegios: gamarra" as svc {
+    artifact "Gunicorn 2 workers\n127.0.0.1:8018" as gunicorn
+    artifact "Aplicacion Flask\n/srv/gamarra-conecta" as flask
   }
-  database "SQLite / datos privados" as db
-  artifact "Logs de aplicación" as logs
+  database "SQLite\n/srv/gamarra-conecta/instance" as db
+  artifact "Variables de entorno\n/etc/gamarra-conecta.env\n(GAMARRA_ENV, GAMARRA_SECRET_KEY)" as env
+  artifact "Respaldos diarios 03:30\n/srv/gamarra-backups\n(14 dias)" as bk
+  node "Otras aplicaciones del VPS\n(Esparragos, etc.), sin cambios" as otras
 }
-cloud "GitHub" as github {
-  artifact "Repositorio + Actions" as actions
-}
-browser --> internet : HTTPS : 443
-internet --> nginx : TLS
-nginx --> gunicorn : localhost
+cloud "GitHub\nmichellemontoyarocca/gamarra-conecta\n(repositorio publico + Actions)" as github
+browser --> dns : resuelve nombre
+browser --> nginx : HTTPS 443
+nginx --> gunicorn : proxy_pass local
 gunicorn --> flask
-flask --> db : archivo local restringido
-flask --> logs : eventos y errores
-actions ..> vps : despliegue autorizado
-note bottom of vps
-  Topología objetivo. Usar esta figura como
-  implementada solo tras verificar el VPS y la URL.
-end note
+flask --> db : lectura y escritura
+svc ..> env : EnvironmentFile
+db --> bk : copia con sqlite3.backup
+github ..> flask : git clone / git pull (despliegue manual por SSH)
+nginx ..> otras : otros server_name, independientes
 @enduml

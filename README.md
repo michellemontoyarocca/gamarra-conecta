@@ -28,10 +28,14 @@ El comando solicita una contraseña de al menos 10 caracteres sin mostrarla. No 
 | `/` | Portada | Público |
 | `/registro`, `/login` | Cuenta de comerciante | Público |
 | `/negocios` | Directorio, búsqueda y filtro de rubro | Público |
+| `/negocios/<id>` | Ficha pública de un negocio publicado | Público |
+| `/guia` | Guía de formalización con enlaces oficiales | Público |
+| `/salud` | Prueba de humo: devuelve `{"estado":"ok"}` | Público |
 | `/mi-negocio` | Alta y edición del perfil; devuelve el estado a pendiente | Autenticado |
-| `/orientacion` | Envío y consulta de solicitudes propias | Autenticado |
+| `/orientacion` | Envío y consulta de solicitudes propias y su estado | Autenticado |
 | `/admin` | Indicadores y pendientes | Administrador |
-| `/admin/negocios/<id>/publicar` | Moderación de perfil | Administrador |
+| `/admin/negocios/<id>/publicar` | Aprobar un perfil | Administrador |
+| `/admin/negocios/<id>/rechazar` | Rechazar un perfil | Administrador |
 | `/admin/solicitudes/<id>/revisar` | Cambio de estado de solicitud | Administrador |
 
 ## Seguridad incorporada
@@ -54,8 +58,8 @@ GitHub Actions ejecuta las mismas fases de compilación, pruebas, análisis est�
 
 ## Ramas y trazabilidad
 
-Propuesta de flujo: `test` para integración, ramas `feature/hu-XX` para cada historia, pull requests revisados hacia `main`; `main` contiene el código estable. Referenciar la clave real de Jira en el título de cada PR y en los commits. Las claves, PR y capturas se agregan al informe una vez existan.
+`main` es la rama de producción y `test` la de integración. Cada historia de Jira (espacio GC) se trabajó en una rama `feature/GC-n-...` desde `test`; el commit lleva como mensaje la clave y el nombre exacto de la historia, se integra en `test` con un merge sin fast-forward y un Pull Request lleva `test` a `main`. Cada push ejecuta el workflow «CI y seguridad».
 
 ## Despliegue
 
-En un VPS: clonar el repositorio en `/srv/gamarra-conecta`, instalar Python y dependencias, establecer `GAMARRA_ENV=production` y `GAMARRA_SECRET_KEY`, ejecutar Flask mediante Gunicorn detrás de Nginx con HTTPS y restringir acceso al archivo SQLite. El usuario remoto del pipeline debe poder reiniciar únicamente el servicio `gamarra-conecta` sin contraseña, con una regla de `sudoers` específica; no otorgar privilegios generales. Antes de publicar, agregar respaldo de `instance/`, configuración de dominio, servicio del sistema y pruebas de humo. Este repositorio local no acredita un despliegue público.
+La aplicación está publicada en https://gamarra.comextech.es sobre un VPS Ubuntu: carpeta `/srv/gamarra-conecta`, usuario del sistema `gamarra` sin privilegios, entorno virtual con Flask y Gunicorn, servicio `systemd` `gamarra-conecta` (Gunicorn en `127.0.0.1:8018`), Nginx con certificado de Let's Encrypt y redirección de HTTP a HTTPS. `GAMARRA_ENV=production` y `GAMARRA_SECRET_KEY` están en `/etc/gamarra-conecta.env` (permisos 600, fuera de Git). Una regla de `sudoers` permite al usuario `gamarra` reiniciar únicamente ese servicio. Un respaldo diario a las 03:30 copia `instance/gamarra.sqlite3` a `/srv/gamarra-backups` y conserva 14 días. Para actualizar: `git pull` en la carpeta, `pip install -r requirements.txt` y `sudo systemctl restart gamarra-conecta`; después, comprobar `/salud`.
