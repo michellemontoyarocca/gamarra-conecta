@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS businesses (
     category TEXT NOT NULL,
     description TEXT NOT NULL,
     gallery TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'pendiente' CHECK(status IN ('pendiente', 'publicado')),
+    status TEXT NOT NULL DEFAULT 'pendiente' CHECK(status IN ('pendiente', 'publicado', 'rechazado')),
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS guidance_requests (
@@ -272,6 +272,16 @@ def create_app(test_config: dict | None = None) -> Flask:
         if result.rowcount == 0:
             abort(404)
         flash('Negocio publicado.', 'success')
+        return redirect(url_for('admin'))
+
+    @app.post('/admin/negocios/<int:business_id>/rechazar')
+    @admin_required
+    def reject_business(business_id: int):
+        with db():
+            result = db().execute("UPDATE businesses SET status='rechazado' WHERE id=? AND status='pendiente'", (business_id,))
+        if result.rowcount == 0:
+            abort(404)
+        flash('Negocio rechazado. El titular puede corregir su perfil y volver a enviarlo.', 'success')
         return redirect(url_for('admin'))
 
     @app.post('/admin/solicitudes/<int:guidance_id>/revisar')
