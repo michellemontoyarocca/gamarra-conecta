@@ -4,3 +4,9 @@ __pycache__/
 instance/
 *.pyc
 .env
+
+# Herramientas de asistentes y editores: nunca van al repositorio
+.claude/
+CLAUDE.md
+.cursor/
+.vscode/
