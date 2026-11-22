@@ -9,7 +9,7 @@ from functools import wraps
 from pathlib import Path
 
 import click
-from flask import Flask, abort, flash, g, redirect, render_template, request, session, url_for
+from flask import Flask, abort, flash, g, jsonify, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
@@ -124,6 +124,11 @@ def create_app(test_config: dict | None = None) -> Flask:
     def index():
         count = db().execute("SELECT COUNT(*) FROM businesses WHERE status = 'publicado'").fetchone()[0]
         return render_template('index.html', count=count)
+
+    @app.get('/salud')
+    def health():
+        db().execute('SELECT 1').fetchone()
+        return jsonify(estado='ok')
 
     @app.route('/registro', methods=['GET', 'POST'])
     def register():
