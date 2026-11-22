@@ -1,0 +1,4 @@
+{% extends 'base.html' %}{% block title %}{{ business['name'] }} · Gamarra Conecta{% endblock %}
+{% block content %}<section class="page-heading"><p class="eyebrow">FICHA DEL NEGOCIO</p><h1>{{ business['name'] }}</h1><p><span class="tag">{{ business['category'] }}</span></p></section>
+<article class="card business"><p>{{ business['description'] }}</p><small>Galería: {{ business['gallery'] }}</small></article>
+<p><a class="button secondary" href="{{ url_for('businesses') }}">Volver al directorio</a></p>{% endblock %}
