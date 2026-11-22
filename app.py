@@ -44,6 +44,14 @@ CREATE TABLE IF NOT EXISTS guidance_requests (
 
 CATEGORIES = ('Confección', 'Telas', 'Accesorios', 'Servicios', 'Otros')
 TOPICS = ('Registro de negocio', 'Licencia municipal', 'Obligaciones tributarias', 'Orientación general')
+GUIDE_STEPS = (
+    ('Inscribir el negocio en el RUC', 'La inscripción y la elección del régimen tributario se gestionan ante la SUNAT.',
+     'Portal de la SUNAT', 'https://www.sunat.gob.pe/'),
+    ('Tramitar la licencia de funcionamiento', 'La licencia la otorga la municipalidad del distrito donde opera el negocio.',
+     'Municipalidad de La Victoria', 'https://www.munilavictoria.gob.pe/'),
+    ('Consultar trámites y requisitos del Estado', 'El portal único del Estado reúne la información oficial de trámites y servicios.',
+     'Portal gob.pe', 'https://www.gob.pe/'),
+)
 
 
 def create_app(test_config: dict | None = None) -> Flask:
@@ -186,6 +194,10 @@ def create_app(test_config: dict | None = None) -> Flask:
         if business is None:
             abort(404)
         return render_template('business_detail.html', business=business)
+
+    @app.get('/guia')
+    def formalization_guide():
+        return render_template('guide.html', steps=GUIDE_STEPS)
 
     @app.route('/mi-negocio', methods=['GET', 'POST'])
     @login_required

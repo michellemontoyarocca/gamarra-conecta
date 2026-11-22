@@ -1,0 +1,4 @@
+{% extends 'base.html' %}{% block title %}Guía de formalización · Gamarra Conecta{% endblock %}
+{% block content %}<section class="page-heading"><p class="eyebrow">GUÍA</p><h1>Pasos generales para formalizar un negocio</h1><p>Información general con enlaces a las entidades oficiales. El portal no verifica la situación de tu negocio ni sustituye los trámites ante la SUNAT o la municipalidad.</p></section>
+<ol class="steps">{% for title, text, label, url in steps %}<li class="card"><h2>{{ title }}</h2><p>{{ text }}</p><a class="button secondary" href="{{ url }}" rel="noopener noreferrer" target="_blank">{{ label }}</a></li>{% endfor %}</ol>
+<p><a class="button" href="{{ url_for('guidance') }}">Registrar una solicitud de orientación</a></p>{% endblock %}

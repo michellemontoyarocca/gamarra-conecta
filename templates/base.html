@@ -11,6 +11,7 @@
     <a class="brand" href="{{ url_for('index') }}">Gamarra<span>Conecta</span></a>
     <nav aria-label="Navegación principal">
       <a href="{{ url_for('businesses') }}">Directorio</a>
+      <a href="{{ url_for('formalization_guide') }}">Guía</a>
       {% if g.user %}
         <a href="{{ url_for('my_business') }}">Mi negocio</a>
         <a href="{{ url_for('guidance') }}">Orientación</a>
