@@ -27,9 +27,9 @@ class HistoriaTestCase(unittest.TestCase):
         return target.post(path, data={'_csrf': token, **data}, follow_redirects=follow)
 
     def register(self, email='ana@example.test', name='Ana', client=None):
-        return self.post('/registro', {'name': name, 'email': email, 'password': 'ClaveSegura123!'}, client)
+        return self.post('/registro', {'name': name, 'email': email, 'password': 'ClaveSegura123!'}, client)  # pragma: allowlist secret
 
-    def login(self, email='ana@example.test', password='ClaveSegura123!', client=None):
+    def login(self, email='ana@example.test', password='ClaveSegura123!', client=None):  # pragma: allowlist secret
         return self.post('/login', {'email': email, 'password': password}, client)
 
     def new_client(self):

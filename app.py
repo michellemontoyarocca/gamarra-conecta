@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import secrets
 import sqlite3
+import time
 from functools import wraps
 from pathlib import Path
 
@@ -39,6 +40,11 @@ CREATE TABLE IF NOT EXISTS guidance_requests (
     details TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'pendiente' CHECK(status IN ('pendiente', 'revisada')),
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS login_attempts (
+    email TEXT PRIMARY KEY,
+    failures INTEGER NOT NULL,
+    last_failed_at INTEGER NOT NULL
 );
 """
 
@@ -159,10 +165,25 @@ def create_app(test_config: dict | None = None) -> Flask:
     def login():
         if request.method == 'POST':
             email = request.form.get('email', '').strip().lower()
+            now = int(time.time())
+            attempt = db().execute(
+                'SELECT failures, last_failed_at FROM login_attempts WHERE email = ?', (email,)
+            ).fetchone()
+            if attempt and attempt['failures'] >= 5 and now - attempt['last_failed_at'] < 900:
+                abort(429, 'Demasiados intentos. Vuelve a intentarlo en 15 minutos.')
             user = db().execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
             if user is None or not check_password_hash(user['password_hash'], request.form.get('password', '')):
+                with db():
+                    db().execute(
+                        '''INSERT INTO login_attempts(email, failures, last_failed_at) VALUES(?, 1, ?)
+                        ON CONFLICT(email) DO UPDATE SET
+                        failures = CASE WHEN ? - last_failed_at >= 900 THEN 1 ELSE failures + 1 END,
+                        last_failed_at = ?''', (email, now, now, now),
+                    )
                 flash('Credenciales incorrectas.', 'error')
             else:
+                with db():
+                    db().execute('DELETE FROM login_attempts WHERE email = ?', (email,))
                 session.clear()
                 session['user_id'] = user['id']
                 session['_csrf'] = secrets.token_urlsafe(32)

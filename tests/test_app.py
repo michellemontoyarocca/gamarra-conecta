@@ -2,6 +2,7 @@ import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from werkzeug.security import generate_password_hash
 
@@ -28,7 +29,7 @@ class GamarraAppTests(unittest.TestCase):
     def register_and_login(self, email='ana@example.test', name='Ana'):
         result = self.post('/registro', {'name': name, 'email': email, 'password': 'ClaveSegura123!'})
         self.assertIn('Cuenta creada'.encode(), result.data)
-        return self.post('/login', {'email': email, 'password': 'ClaveSegura123!'})
+        return self.post('/login', {'email': email, 'password': 'ClaveSegura123!'})  # pragma: allowlist secret
 
     def make_admin(self):
         connection = sqlite3.connect(self.db_path)
@@ -57,6 +58,20 @@ class GamarraAppTests(unittest.TestCase):
         result = self.client.post('/registro', data={'name': 'Ana', 'email': 'ana@example.test', 'password': 'ClaveSegura123!'})
         self.assertEqual(result.status_code, 400)
 
+    def test_login_blocks_brute_force_and_recovers_after_window(self):
+        self.post('/registro', {'name': 'Ana', 'email': 'ana@example.test', 'password': 'ClaveSegura123!'})  # pragma: allowlist secret
+        with patch('app.time.time', return_value=1_000_000):
+            for _ in range(5):
+                self.assertIn(b'Credenciales incorrectas', self.post('/login', {
+                    'email': 'ana@example.test', 'password': 'incorrecta',  # pragma: allowlist secret
+                }).data)
+            blocked = self.post('/login', {'email': 'ana@example.test', 'password': 'ClaveSegura123!'})
+            self.assertEqual(blocked.status_code, 429)
+        with patch('app.time.time', return_value=1_000_901):
+            recovered = self.post('/login', {'email': 'ana@example.test', 'password': 'ClaveSegura123!'})
+            self.assertEqual(recovered.status_code, 200)
+            self.assertIn(b'Mi negocio', recovered.data)
+
     def test_business_requires_review_before_search(self):
         self.register_and_login()
         result = self.post('/mi-negocio', {
@@ -67,7 +82,7 @@ class GamarraAppTests(unittest.TestCase):
         self.assertNotIn(b'Confecciones Andinas', self.client.get('/negocios').data)
         self.make_admin()
         admin_client = self.app.test_client()
-        self.post('/login', {'email': 'admin@example.test', 'password': 'ClaveAdmin123!'}, admin_client)
+        self.post('/login', {'email': 'admin@example.test', 'password': 'ClaveAdmin123!'}, admin_client)  # pragma: allowlist secret
         dashboard = admin_client.get('/admin')
         self.assertIn(b'Confecciones Andinas', dashboard.data)
         self.post('/admin/negocios/1/publicar', {}, admin_client)
@@ -80,8 +95,8 @@ class GamarraAppTests(unittest.TestCase):
         self.assertIn(b'Deseo conocer los pasos.', self.client.get('/orientacion').data)
         self.assertEqual(self.client.get('/admin').status_code, 403)
         other = self.app.test_client()
-        self.post('/registro', {'name': 'Beto', 'email': 'beto@example.test', 'password': 'ClaveSegura123!'}, other)
-        self.post('/login', {'email': 'beto@example.test', 'password': 'ClaveSegura123!'}, other)
+        self.post('/registro', {'name': 'Beto', 'email': 'beto@example.test', 'password': 'ClaveSegura123!'}, other)  # pragma: allowlist secret
+        self.post('/login', {'email': 'beto@example.test', 'password': 'ClaveSegura123!'}, other)  # pragma: allowlist secret
         self.assertNotIn(b'Deseo conocer los pasos.', other.get('/orientacion').data)
 
     def test_publication_rejects_non_admin_and_invalid_category(self):
