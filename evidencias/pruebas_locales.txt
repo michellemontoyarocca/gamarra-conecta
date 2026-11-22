@@ -1,0 +1,10 @@
+test_business_requires_review_before_search (test_app.GamarraAppTests.test_business_requires_review_before_search) ... ok
+test_csrf_rejects_missing_token (test_app.GamarraAppTests.test_csrf_rejects_missing_token) ... ok
+test_owner_cannot_access_other_users_requests_or_admin (test_app.GamarraAppTests.test_owner_cannot_access_other_users_requests_or_admin) ... ok
+test_publication_rejects_non_admin_and_invalid_category (test_app.GamarraAppTests.test_publication_rejects_non_admin_and_invalid_category) ... ok
+test_registration_login_and_password_hash (test_app.GamarraAppTests.test_registration_login_and_password_hash) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 5.431s
+
+OK

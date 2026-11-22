@@ -1,0 +1,44 @@
+@startuml
+title Gamarra Conecta - Modelo de dominio (UML clases)
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam class {
+  BackgroundColor #EFF6FF
+  BorderColor #2563EB
+  FontColor #0F172A
+}
+hide methods
+class Usuario {
+  +id: entero
+  +nombre: texto
+  +correo: texto único
+  +clave_hash: texto
+  +rol: comerciante | administrador
+  +fecha_creacion: fecha-hora
+}
+class Negocio {
+  +id: entero
+  +propietario_id: entero
+  +nombre: texto
+  +rubro: texto
+  +descripcion: texto
+  +galeria: texto
+  +estado: pendiente | publicado
+  +fecha_creacion: fecha-hora
+}
+class SolicitudOrientacion {
+  +id: entero
+  +usuario_id: entero
+  +tema: texto
+  +detalle: texto
+  +estado: pendiente | revisada
+  +fecha_creacion: fecha-hora
+}
+Usuario "1" -- "0..1" Negocio : posee >
+Usuario "1" -- "0..*" SolicitudOrientacion : crea >
+note bottom of Negocio
+  Solo el estado publicado aparece en
+  el directorio público.
+end note
+@enduml

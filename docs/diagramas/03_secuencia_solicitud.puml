@@ -1,0 +1,37 @@
+@startuml
+title Gamarra Conecta - Solicitud de orientación (UML secuencia)
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam ArrowColor #334155
+skinparam ParticipantBorderColor #2563EB
+skinparam ParticipantBackgroundColor #EFF6FF
+skinparam SequenceLifeLineBorderColor #94A3B8
+skinparam SequenceGroupBorderColor #94A3B8
+actor Comerciante
+participant "Navegador" as N
+participant "Rutas Flask" as F
+participant "Autenticación" as A
+participant "Servicio de solicitudes" as S
+database "SQLite" as DB
+Comerciante -> N : completa formulario
+N -> F : POST /orientacion + token CSRF
+F -> A : verificar sesión y CSRF
+alt sesión inválida o token incorrecto
+  A --> F : rechazo
+  F --> N : 401/403 o redirección a login
+else sesión válida
+  A --> F : usuario autenticado
+  F -> S : validar datos de solicitud
+  alt datos incompletos
+    S --> F : errores de validación
+    F --> N : mostrar errores sin guardar
+  else datos válidos
+    S -> DB : INSERT solicitud (propietario, estado pendiente)
+    DB --> S : identificador
+    S --> F : confirmación
+    F --> N : mostrar solicitud creada
+    N --> Comerciante : número y estado pendiente
+  end
+end
+@enduml

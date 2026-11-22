@@ -1,0 +1,54 @@
+@startuml
+title Gamarra Conecta - Arquitectura lógica (UML componentes)
+top to bottom direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam componentStyle uml2
+skinparam linetype ortho
+skinparam ArrowColor #334155
+skinparam component {
+  BackgroundColor #EFF6FF
+  BorderColor #2563EB
+  FontColor #0F172A
+}
+skinparam database {
+  BackgroundColor #F0FDF4
+  BorderColor #16A34A
+  FontColor #0F172A
+}
+actor "Usuario" as U
+package "Presentación" {
+  [Navegador y plantillas HTML] as UI
+}
+package "Aplicación - Flask" {
+  [Rutas web / API] as API
+  [Autenticación y control de acceso] as Auth
+  [Negocios y directorio] as Biz
+  [Orientación y solicitudes] as Req
+  [Administración] as Admin
+}
+package "Datos" {
+  database "SQLite del MVP" as DB
+}
+package "Tecnología" {
+  [Proxy HTTPS] as Proxy
+  [Servidor WSGI] as WSGI
+}
+U --> UI : interacción
+UI --> Proxy : HTTPS
+Proxy --> WSGI : HTTP interno
+WSGI --> API
+API --> Auth
+API --> Biz
+API --> Req
+API --> Admin
+Auth --> DB : consultas parametrizadas
+Biz --> DB : CRUD
+Req --> DB : CRUD
+Admin --> DB : lectura y revisión
+note right of DB
+  Datos de usuarios y copias de respaldo
+  fuera del repositorio en producción.
+end note
+@enduml

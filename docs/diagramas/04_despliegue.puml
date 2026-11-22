@@ -1,0 +1,42 @@
+@startuml
+title Gamarra Conecta - Diagrama de despliegue (objetivo)
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam ArrowColor #334155
+skinparam node {
+  BackgroundColor #EFF6FF
+  BorderColor #2563EB
+  FontColor #0F172A
+}
+skinparam artifact {
+  BackgroundColor #F8FAFC
+  BorderColor #64748B
+}
+node "Dispositivo de usuario" as client {
+  artifact "Navegador web" as browser
+}
+cloud "Internet" as internet
+node "VPS Linux / nube" as vps {
+  node "Nginx - HTTPS" as nginx
+  node "Gunicorn - WSGI" as gunicorn {
+    artifact "Aplicación Flask" as flask
+  }
+  database "SQLite / datos privados" as db
+  artifact "Logs de aplicación" as logs
+}
+cloud "GitHub" as github {
+  artifact "Repositorio + Actions" as actions
+}
+browser --> internet : HTTPS : 443
+internet --> nginx : TLS
+nginx --> gunicorn : localhost
+gunicorn --> flask
+flask --> db : archivo local restringido
+flask --> logs : eventos y errores
+actions ..> vps : despliegue autorizado
+note bottom of vps
+  Topología objetivo. Usar esta figura como
+  implementada solo tras verificar el VPS y la URL.
+end note
+@enduml

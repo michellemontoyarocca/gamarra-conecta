@@ -1,0 +1,54 @@
+@startuml
+title Gamarra Conecta - Diagrama de casos de uso
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam ArrowColor #334155
+skinparam usecase {
+  BackgroundColor #EFF6FF
+  BorderColor #2563EB
+  FontColor #0F172A
+}
+skinparam actor {
+  BorderColor #0F172A
+  FontColor #0F172A
+}
+actor "Visitante" as VIS
+actor "Comerciante" as COM
+actor "Administrador" as ADM
+rectangle "Sistema Gamarra Conecta" {
+  usecase "Consultar directorio" as UC1
+  usecase "Filtrar negocios\npor rubro" as UC2
+  usecase "Crear cuenta" as UC3
+  usecase "Iniciar sesión" as UC4
+  usecase "Registrar y editar\nnegocio" as UC5
+  usecase "Consultar guía de\nformalización" as UC6
+  usecase "Solicitar orientación" as UC7
+  usecase "Revisar solicitudes" as UC8
+  usecase "Consultar indicadores" as UC9
+  usecase "Publicar negocio\nrevisado" as UC10
+}
+VIS --> UC1
+VIS --> UC2
+VIS --> UC3
+COM --> UC4
+COM --> UC5
+COM --> UC6
+COM --> UC7
+ADM --> UC4
+ADM --> UC8
+ADM --> UC9
+ADM --> UC10
+UC2 ..> UC1 : <<extend>>
+UC5 ..> UC4 : <<include>>
+UC7 ..> UC4 : <<include>>
+UC8 ..> UC4 : <<include>>
+UC9 ..> UC4 : <<include>>
+UC10 ..> UC4 : <<include>>
+note bottom of UC6
+  Contenido informativo del MVP.
+  No equivale a una evaluación legal
+  ni concede licencias.
+end note
+@enduml

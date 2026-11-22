@@ -1,0 +1,37 @@
+@startuml
+title Gamarra Conecta - Flujo CI/CD con controles DevSecOps
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam activity {
+  BackgroundColor #EFF6FF
+  BorderColor #2563EB
+  FontColor #0F172A
+  DiamondBackgroundColor #FEF3C7
+  DiamondBorderColor #D97706
+}
+start
+:Planificar historia y criterios de aceptación en Jira;
+:Crear rama test o feature y realizar commit;
+:Abrir Pull Request hacia main;
+:Build: instalar dependencias reproducibles;
+:Test: ejecutar pruebas unitarias y de integración;
+if (¿Pruebas correctas?) then (sí)
+  :SAST (Bandit);
+  :Auditar dependencias (pip-audit);
+  :Escanear secretos;
+  if (¿Controles aprobados?) then (sí)
+    :Revisión del Pull Request;
+    :Integrar en main;
+    :Release / paquete versionado;
+    :Desplegar en entorno de nube;
+    :Verificar smoke test y URL pública;
+    :Operar: logs, respaldo y monitoreo básico;
+  else (no)
+    :Corregir hallazgo y repetir pipeline;
+  endif
+else (no)
+  :Corregir código y repetir pipeline;
+endif
+stop
+@enduml
