@@ -15,7 +15,7 @@
     <article class="card request">
       <header><h3>{{ item['topic'] }}</h3><span class="badge {{ item['status'] }}">{{ item['status'] }}</span></header>
       <p>{{ item['details'] }}</p>
-      <small class="muted">Enviada el {{ item['created_at'] }}</small>
+      <small class="muted">Enviada el {{ item['created_at'][:16] }} (UTC)</small>
     </article>
     {% else %}
     <div class="empty"><h3>Todavía no has registrado solicitudes</h3><p>Cuando envíes una, aparecerá aquí con su estado: pendiente o revisada.</p></div>
