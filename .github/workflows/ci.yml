@@ -32,7 +32,7 @@ jobs:
         run: pip-audit -r requirements.txt --format json --output pip-audit-report.json
       - name: Detectar secretos
         run: |
-          detect-secrets scan --all-files > secret-scan.json
+          detect-secrets scan --all-files --exclude-files '^\.git/' > secret-scan.json
           python -c "import json; r=json.load(open('secret-scan.json', encoding='utf-8'))['results']; n=sum(map(len,r.values())); print(f'Hallazgos de secretos: {n}'); assert n == 0"
       - name: Conservar resultados de seguridad
         if: always()

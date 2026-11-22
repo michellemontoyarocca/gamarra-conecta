@@ -54,7 +54,7 @@ python -m compileall -q app.py tests
 python -m pip install bandit pip-audit detect-secrets==1.5.0
 python -m bandit -r app.py -ll
 python -m pip_audit -r requirements.txt
-detect-secrets scan --all-files
+detect-secrets scan --all-files --exclude-files '^\.git/'
 ```
 
 GitHub Actions ejecuta compilación, 54 pruebas, Bandit, pip-audit y detect-secrets en cada push y pull request, y conserva los tres reportes de seguridad como artefacto. Un push a `main` que supera `calidad` inicia `deploy` cuando `DEPLOY_ENABLED=true`. La clave SSH del job está limitada en el VPS a ejecutar `scripts/deploy.sh`: actualiza `main`, instala dependencias en el entorno virtual del servidor, reinicia el servicio y comprueba `/salud`. Antes de desplegar guarda una copia de SQLite; si falla la instalación, el reinicio o la comprobación de salud, restaura el commit anterior. El job necesita el entorno `production` y los secretos `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`, `DEPLOY_HOST` y `DEPLOY_USER`.

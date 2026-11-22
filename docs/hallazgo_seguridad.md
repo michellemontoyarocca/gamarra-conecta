@@ -17,7 +17,7 @@ python -m unittest discover -s tests -p test_app.py -k test_login_blocks
 python -m unittest discover -s tests -v
 bandit -r app.py -ll
 pip-audit -r requirements.txt
-detect-secrets scan --all-files
+detect-secrets scan --all-files --exclude-files '^\.git/'
 ```
 
 El control limita intentos por cuenta. Una futura versión podría añadir límites por origen y alertas de actividad anómala.
