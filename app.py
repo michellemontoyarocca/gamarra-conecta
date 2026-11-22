@@ -177,6 +177,16 @@ def create_app(test_config: dict | None = None) -> Flask:
         rows = db().execute(sql, args).fetchall()
         return render_template('businesses.html', businesses=rows, category=category, query=query)
 
+    @app.get('/negocios/<int:business_id>')
+    def business_detail(business_id: int):
+        business = db().execute(
+            "SELECT id, name, category, description, gallery FROM businesses WHERE id = ? AND status = 'publicado'",
+            (business_id,),
+        ).fetchone()
+        if business is None:
+            abort(404)
+        return render_template('business_detail.html', business=business)
+
     @app.route('/mi-negocio', methods=['GET', 'POST'])
     @login_required
     def my_business():
